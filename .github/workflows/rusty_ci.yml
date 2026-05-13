@@ -1,0 +1,47 @@
+name: Rust CI
+
+on:
+  push:
+    branches: [ "main" ]
+    # Skips workflow execution if only the specified non-Rust files change
+    paths-ignore:
+      - 'README.md'
+      - '.github/workflows/**'
+      - 'docs/**'
+      - 'LICENSE*'
+      - '.gitignore'
+  pull_request:
+    branches: [ "main" ]
+    paths-ignore:
+      - 'README.md'
+      - '.github/workflows/**'
+      - 'docs/**'
+      - 'LICENSE*'
+      - '.gitignore'
+
+jobs:
+  build:
+    runs-on: BLD
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Update Rust Toolchain
+        run: |
+          rustup update stable
+          rustup default stable
+          rustup component add clippy rustfmt
+
+      - name: Check code formatting
+        run: cargo fmt --all -- --check
+
+      - name: Run Clippy linter
+        run: cargo clippy --all-targets --all-features -- -D warnings
+
+      - name: Build project
+        run: cargo check --verbose
+
+      - name: Run tests
+        run: cargo test --verbose
+
